@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Fill In Box 3</title>
+	<style type="text/css">
+        *{ margin: 0px; padding: 0px; }
+        html, body{ width: 100%; height: 100%; -webkit-user-select: none;}
+        canvas{ display: block; width: 100%; height: 100%; }
+        #player1{ display: inline-block; position: absolute; }
+		#player2{ display: inline-block; position: absolute; right: 3px; }
+        #timeKeeper{ right: 15px; display: inline-block; position: absolute; left: 0px; text-align: center;}
+        span{ padding-left: 10px;}
+    </style>
+</head>
+<body oncontextmenu="return false">
+<h1 id="player1"><span id="player1Name">Player 1</span> SCORE:<span id="player1Score">0</span></h1>
+<h1 id="player2"><span id="player2Name">Player 2</span> SCORE:<span id="player2Score">0</span></h1>
+<h1 id="timeKeeper">Time Left: <span id="timeSeconds">30</span></h1>
+<canvas id="can"></canvas>
+<script type="text/javascript">
+
+//PLAYER OBJECT
+function Player(){
+	this.x = null,
+	this.y = null,
+	this.width = 100;
+	this.height = 100;
+	this.speed = 100;
+	this.color = null;
+	this.score = 0;
+	this.randomPlace = function(){
+		this.x = Math.floor(Math.random()*Math.floor(can.width/100))*100;
+		this.y = Math.floor(Math.random()*Math.floor(can.height/100))*100;
+	};
+	this.draw = function(){
+		drawer.fillStyle = this.color;
+		drawer.fillRect(this.x,this.y,this.width,this.height);
+	};
+	this.check = function(el){
+        if(this.x == fillMeBox.x && this.y == fillMeBox.y){
+            el.innerHTML = ++this.score;
+            fillMeBox.makeRandomFillBox();
+            fillMeBox.draw();
+        };
+	};
+};
+//MAKE PLAYERS
+player1 = new Player();
+player2 = new Player();
+
+//FILL ME BOX OBJECT
+fillMeBox = {
+    x: null,
+    y: null,
+    width: 100,
+    height: 100,
+    makeRandomFillBox: function(){
+        this.x = Math.floor(Math.random()*Math.floor(can.width/100))*100;
+        this.y = Math.floor(Math.random()*Math.floor(can.height/100))*100;
+        if((this.x == player1.x && this.y == player1.y) || (this.x == player2.x && this.y == player2.y)){
+            this.makeRandomFillBox();
+        };
+    },
+    draw: function(){
+        drawer.strokeRect(this.x, this.y, this.width, this.height);
+        canvas.drawCenteredText("20px impact", "Fill Me!", fillMeBox, player2.color, this.x ,fillMeBox.height/(fillMeBox.y + 55));
+    }
+};
+
+//CANVAS OBJECT
+canvas = {
+    resize: function(){
+        can.width  = Math.floor(window.innerWidth/100)*100;
+        can.height = Math.floor(window.innerHeight/100)*100;
+    },
+    clear: function(){
+        drawer.clearRect(0, 0, can.width, can.height);
+    },
+    drawCenteredText: function(font, text, obj, color, width, height){
+        drawer.font = font;
+        textWidth = drawer.measureText(text);
+        textXPos = (obj.width - textWidth.width) / 2;
+        drawer.fillStyle = color;
+        drawer.fillText(text, textXPos + width, obj.height / height);
+    }
+};
+
+game = {
+	setup: function(){
+		player1.name = prompt("Player 1 Name: ", "Edwin").toUpperCase();
+		player2.name = prompt("Player 2 Name: ", "Other").toUpperCase();
+		player1.NameElement.innerHTML = player1.name;
+		player2.NameElement.innerHTML = player2.name;
+	    player1.color = prompt("Color for Player 1","red");
+		player2.color = prompt("Color for Player 2","blue");
+	    player1.randomPlace();
+	    player2.randomPlace();
+	    isPlaying = true;
+	    canvas.clear();
+	},
+
+	//DRAW MAINMENU
+	mainMenu: function(){
+	    font = "100px impact";
+	    canvas.drawCenteredText(font, "Fill In Box 3", can, 'black', 0, 2.7);
+	    canvas.drawCenteredText(font, "Press Space To Begin", can, "red", 0, 2);
+	},
+
+	//REDRAW/UPDATE
+	reDraw: function(){
+	    canvas.clear();
+	    player1.draw();
+	    player2.draw();
+	    fillMeBox.draw();
+	},
+
+	//GAMEOVER
+	gameOver: function(){
+		//VARIABLES
+	    window.onkeydown = null;
+	    clearInterval(changeFillBox);
+	    isPlaying = false;
+	    canvas.clear();
+	    FONT = "100px Verdana";
+		if(player1.score > player2.score){
+			canvas.drawCenteredText(FONT, player1.name.toUpperCase() + " Wins!!!", can, player1.color, 0, 2);
+		} else if(player1.score < player2.score){
+			canvas.drawCenteredText(FONT, player2.name.toUpperCase() + " Wins!!!", can, player2.color, 0, 2);
+		} else {
+			canvas.drawCenteredText(FONT, "IT'S A TIE!!!", can, 'black', 0, 2);
+		};
+	    window.onkeyup = function(e){
+	        if(e.keyCode == 32){
+	            location.reload();
+	        };
+	    };
+	},
+
+	//GAME TIMER
+	timer: function(){
+	    timeLeft = 30;
+	    count = setInterval(function countdown(){
+	        timeLeft--;
+	        timeSeconds.innerHTML = timeLeft;
+	        if (timeLeft == 0) {
+	            clearInterval(count);
+	            game.gameOver();
+	        } else if(timeLeft <= 5){
+	            timeSeconds.style.color = 'red';
+	        }
+	    }, 1000)
+	},
+
+	run: function(){
+	    this.mainMenu();
+	    window.onkeyup = function(e){
+	        if(e.keyCode == 32) {
+	            window.onkeyup = null;                    //DISABLE KEYINPUT
+	            game.setup();                             //CALL SETUP
+	            changeFillBox = setInterval(function(){   //START CHANGING FILLMEBOX POSITION EVERY SECOND
+					fillMeBox.makeRandomFillBox();
+					game.reDraw();
+				},1000);
+	            document.documentElement.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT); //REQUEST FULLSCREEN
+	            document.body.webkitRequestPointerLock(); //REQUEST POINTERLOCK
+	            fillMeBox.makeRandomFillBox();            //MAKE FILLMEBOX
+	            game.reDraw();                            //CALL REDRAW FUNCTION
+	            game.timer();                             //START THE TIMER
+	        };
+	    };
+	}
+};
+
+/*--------------------------------------------------------MOVEMENT----------------------------------------------------------------*/
+
+function move(player, scoreElement, direction){
+	if(direction == "RIGHT"){
+		player.x += player.speed;
+		player.check(scoreElement);
+		game.reDraw();
+	} else if(direction == "LEFT"){
+		player.x -= player.speed;
+		player.check(scoreElement);
+		game.reDraw();
+	} else if(direction == "DOWN"){
+		player.y += player.speed;
+		player.check(scoreElement);
+		game.reDraw();
+	} else if(direction == "UP"){
+		player.y -= player.speed;
+		player.check(scoreElement);
+		game.reDraw();
+	};
+};
+
+//KEY CODDES
+LEFT = 65 || 70;
+DOWN = 83;
+RIGHT = 68;
+UP = 87;
+window.addEventListener('keydown', function (evt){
+	KEYSTATE[evt.keyCode] = true;
+	if(isPlaying){
+		//PLAYER 1 MOVEMENT
+		if(KEYSTATE[RIGHT] && player1.x+player1.width < can.width){
+			move(player1, player1.ScoreElement, "RIGHT");
+		} else if(KEYSTATE[LEFT] && player1.x > 0){
+			move(player1, player1.ScoreElement, "LEFT");
+		} else if(KEYSTATE[DOWN] && player1.y+player1.height < can.height){
+			move(player1, player1.ScoreElement, "DOWN");
+		} else if(KEYSTATE[UP] && player1.y > 0){
+			move(player1, player1.ScoreElement, "UP");
+		};
+		//PLAYER 2 MOVEMENT
+		if(evt.keyIdentifier == "Right" && player2.x+player2.width < can.width){
+			move(player2, player2.ScoreElement, "RIGHT");
+		} else if(evt.keyIdentifier == "Left" && player2.x > 0){
+			move(player2, player2.ScoreElement, "LEFT");
+		} else if(evt.keyIdentifier == "Down" && player2.y+player2.height < can.height){
+			move(player2, player2.ScoreElement, "DOWN");
+		} else if(evt.keyIdentifier == "Up" && player2.y > 0){
+			move(player2, player2.ScoreElement, "UP");
+		};
+		//EDWIN CHEAT
+		if(evt.keyCode  == 17){
+			fillMeBox.x = Edwin().x + 100;
+			fillMeBox.y = Edwin().y;
+			game.reDraw();
+		} else if(evt.keyCode == 16){
+			Edwin().score++;
+			Edwin().ScoreElement.innerHTML = Edwin().score;
+		};
+
+	};
+})
+window.addEventListener('keyup', function (e){
+	delete KEYSTATE[e.keyCode];
+})
+
+/*--------------------------------------------------------MOVEMENT----------------------------------------------------------------*/
+/*--------------------------------------------------------CHEAT-------------------------------------------------------------------*/
+function Edwin(){
+	if(player1.name.toUpperCase() == "EDWIN"){
+		return player1;
+	} else if(player2.name.toUpperCase() == "EDWIN"){
+		return player2;
+	} else {
+		return false;
+	}
+};
+/*--------------------------------------------------------CHEAT-------------------------------------------------------------------*/
+
+function init(){
+    //VARIABLES
+    isPlaying = false;
+	KEYSTATE = {};
+
+    //CANVAS
+    can = document.getElementById('can');
+    drawer = can.getContext('2d');
+
+    //SCORE
+    scoreKeeper = document.getElementById('scoreKeeper');
+
+    //TIME
+    timeKeeper = document.getElementById('timeKeeper');
+    timeSeconds = document.getElementById('timeSeconds');
+
+    //PLAYER NAME ELEMENTS
+    player1.NameElement = document.getElementById('player1Name');
+    player2.NameElement = document.getElementById('player2Name');
+
+    //PLAYER SCORE ELEMENTS
+    player1.ScoreElement = document.getElementById('player1Score');
+    player2.ScoreElement = document.getElementById('player2Score');
+
+    //REZIZE AND RUN GAME
+    canvas.resize();
+    game.run();
+}; init();
+
+</script>
+</body>
+</html>
