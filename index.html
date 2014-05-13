@@ -91,8 +91,8 @@ game = {
 		player2.name = prompt("Player 2 Name: ", "Other").toUpperCase();
 		player1.NameElement.innerHTML = player1.name;
 		player2.NameElement.innerHTML = player2.name;
-	    player1.color = prompt("Color for Player 1","red");
-		player2.color = prompt("Color for Player 2","blue");
+	    player1.color = prompt("Color for "+player1.name,"red");
+		player2.color = prompt("Color for "+player2.name,"blue");
 	    player1.randomPlace();
 	    player2.randomPlace();
 	    isPlaying = true;
