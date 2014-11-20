@@ -1,284 +1,218 @@
 <!DOCTYPE html>
 <html>
-<head>
-	<title>Fill In Box 3</title>
-	<style type="text/css">
-        *{ margin: 0px; padding: 0px; }
-        html, body{ width: 100%; height: 100%; -webkit-user-select: none;}
-        canvas{ display: block; width: 100%; height: 100%; }
-        #player1{ display: inline-block; position: absolute; }
-		#player2{ display: inline-block; position: absolute; right: 3px; }
-        #timeKeeper{ right: 15px; display: inline-block; position: absolute; left: 0px; text-align: center;}
-        span{ padding-left: 10px;}
-    </style>
-</head>
-<body oncontextmenu="return false">
-<h1 id="player1"><span id="player1Name">Player 1</span> SCORE:<span id="player1Score">0</span></h1>
-<h1 id="player2"><span id="player2Name">Player 2</span> SCORE:<span id="player2Score">0</span></h1>
-<h1 id="timeKeeper">Time Left: <span id="timeSeconds">30</span></h1>
-<canvas id="can"></canvas>
-<script type="text/javascript">
+	<head>
+		<title>Fill In Box 3</title>
+		<style type="text/css">
+			html, body, canvas{ width: 100%; height: 100%; }
+			body, h1{ margin: 0; padding: 0; }
+			canvas{ display: block; }
+			h1{ position: absolute; display: inline-block; -webkit-user-select: none; }
+			span{ padding-left: 5px; }
+			.player:nth-child(2){ right: 10px; }
+			#timeKeeper{ left: 40%; }
+		</style>
+	</head>
+	<body oncontextmenu="return false">
+		<h1 class="player"><span id="player1Name">PLAYER 1</span> SCORE:<span id="player1Score">0</span></h1>
+		<h1 class="player"><span id="player2Name">PLAYER 2</span> SCORE:<span id="player2Score">0</span></h1>
+		<h1 id="timeKeeper">Time Left:<span id="timeSeconds">30</span></h1>
+		<canvas id="can"></canvas>
+		<script type="text/javascript">
 
-//PLAYER OBJECT
-function Player(){
-	this.x = null,
-	this.y = null,
-	this.width = 100;
-	this.height = 100;
-	this.speed = 100;
-	this.color = null;
-	this.score = 0;
-	this.randomPlace = function(){
-		this.x = Math.floor(Math.random()*Math.floor(can.width/100))*100;
-		this.y = Math.floor(Math.random()*Math.floor(can.height/100))*100;
-	};
-	this.draw = function(){
-		drawer.fillStyle = this.color;
-		drawer.fillRect(this.x,this.y,this.width,this.height);
-	};
-	this.check = function(el){
-        if(this.x == fillMeBox.x && this.y == fillMeBox.y){
-            el.innerHTML = ++this.score;
-            fillMeBox.makeRandomFillBox();
-            fillMeBox.draw();
-        };
-	};
-};
-//MAKE PLAYERS
-player1 = new Player();
-player2 = new Player();
+			function Player(name, num){
+				this.nameElement  = document.getElementById("player" + num + "Name");
+				this.scoreElement = document.getElementById('player' + num + 'Score');
+				this.name         = this.nameElement.innerText = name.toUpperCase();
+				this.size         = 100;
+				this.score        = 0;
+				this.color        = prompt("Color for " + this.name);
+				this.randomPlace();
+			};
+			Player.prototype = {
+				randomPlace: function(){
+					this.x = Math.floor(Math.random()*Math.floor(can.width/100))*100;
+					this.y = Math.floor(Math.random()*Math.floor(can.height/100))*100;
+				},
+				draw: function(){
+					drawer.fillStyle = this.color;
+					drawer.fillRect(this.x, this.y, this.size, this.size);
+				},
+				check: function(){
+					if(this.x == fillMeBox.x && this.y == fillMeBox.y){
+					    this.scoreElement.innerText = ++this.score;
+					    fillMeBox.make().draw();
+					};
+				}
+			};
 
-//FILL ME BOX OBJECT
-fillMeBox = {
-    x: null,
-    y: null,
-    width: 100,
-    height: 100,
-    makeRandomFillBox: function(){
-        this.x = Math.floor(Math.random()*Math.floor(can.width/100))*100;
-        this.y = Math.floor(Math.random()*Math.floor(can.height/100))*100;
-        if((this.x == player1.x && this.y == player1.y) || (this.x == player2.x && this.y == player2.y)){
-            this.makeRandomFillBox();
-        };
-    },
-    draw: function(){
-        drawer.strokeRect(this.x, this.y, this.width, this.height);
-        canvas.drawCenteredText("20px impact", "Fill Me!", fillMeBox, player2.color, this.x ,fillMeBox.height/(fillMeBox.y + 55));
-    }
-};
+			var fillMeBox = {
+			    width: 100,
+			    height: 100,
+			    make: function(){
+			        this.x = Math.floor(Math.random()*Math.floor(can.width/100))*100;
+			        this.y = Math.floor(Math.random()*Math.floor(can.height/100))*100;
+			        if((this.x == player1.x && this.y == player1.y) || (this.x == player2.x && this.y == player2.y)) this.make();
+			        return this;
+			    },
+			    draw: function(){
+			    	drawer.strokeRect(this.x, this.y, this.width, this.height);
+			    	canvas.drawCenteredText({font:"20px impact", text:"Fill Me!", obj:this, color:player1.color, width: this.x, height: this.height/(this.y + 55)});
+			    }
+			};
 
-//CANVAS OBJECT
-canvas = {
-    resize: function(){
-        can.width  = Math.floor(window.innerWidth/100)*100;
-        can.height = Math.floor(window.innerHeight/100)*100;
-    },
-    clear: function(){
-        drawer.clearRect(0, 0, can.width, can.height);
-    },
-    drawCenteredText: function(font, text, obj, color, width, height){
-        drawer.font = font;
-        textWidth = drawer.measureText(text);
-        textXPos = (obj.width - textWidth.width) / 2;
-        drawer.fillStyle = color;
-        drawer.fillText(text, textXPos + width, obj.height / height);
-    }
-};
+			var canvas = {
+			    resize: function(){
+			        can.width  = Math.floor(window.innerWidth/100)*100;
+			        can.height = Math.floor(window.innerHeight/100)*100;
+			    },
+			    clear: function(){
+			        drawer.clearRect(0, 0, can.width, can.height);
+			    },
+			    drawCenteredText: function(data){
+			        drawer.font      = data.font;
+			        var textWidth    = drawer.measureText(data.text);
+			        var textXPos     = (data.obj.width - textWidth.width) / 2;
+			        drawer.fillStyle = data.color;
+			        drawer.fillText(data.text, textXPos + data.width, data.obj.height / data.height);
+			    }
+			};
 
-game = {
-	setup: function(){
-		player1.name = prompt("Player 1 Name: ", "Edwin").toUpperCase();
-		player2.name = prompt("Player 2 Name: ", "Other").toUpperCase();
-		player1.NameElement.innerHTML = player1.name;
-		player2.NameElement.innerHTML = player2.name;
-	    player1.color = prompt("Color for "+player1.name,"red");
-		player2.color = prompt("Color for "+player2.name,"blue");
-	    player1.randomPlace();
-	    player2.randomPlace();
-	    isPlaying = true;
-	    canvas.clear();
-	},
+			var game = {
+				setup: function(){
+					player1 = new Player(prompt("Player 1 Name:", "Edwin"), 1);
+					player2 = new Player(prompt("Player 2 Name:", "Other"), 2);
+				    canvas.clear();
+				    this.isPlaying = true;
+				    this.me = (player1.name == "EDWIN") ? player1 : (player2.name == "EDWIN") ? player2 : null;
+				},
+				mainMenu: function(){
+	                canvas.drawCenteredText({font:"100px impact", text:"Fill In Box 3", obj:can, color:"black", width:0, height:3});
+	                canvas.drawCenteredText({font:"100px impact", text:"Press Space To Begin", obj:can, color:"red", width:0, height:2});
+				},
+				reDraw: function(){
+				    canvas.clear();
+				    player1.draw();
+				    player2.draw();
+				    fillMeBox.draw();
+				},
+				gameOver: function(){
+				    window.onkeydown = null;
+				    game.isPlaying = false;
+				    clearInterval(changeFillBox);
+				    canvas.clear();
+					var winner = (player1.score > player2.score) ? player1 : (player2.score > player1.score) ? player2 : {name:"IT'S A TIE!!!", color: 'black'};
+					var winningText = (winner == player1 || winner == player2) ? " Wins!!!" : "";
+					canvas.drawCenteredText({font:"100px Verdana", text:winner.name + winningText , obj:can, color: winner.color, width: 0, height: 2});
+				    window.onkeyup = function(e){
+				        if(e.keyCode == 32) location.reload();
+				    };
+				    document.webkitExitFullscreen();
+				    document.exitPointerLock();
+				},
+				startTime: function(){
+				    var timeLeft = 30;
+				    var count = setInterval(function(){
+				        timeSeconds.innerText = --timeLeft;
+				        if (timeLeft == 0) {
+				            clearInterval(count);
+				            game.gameOver();
+				        } else if(timeLeft <= 5){
+				            timeSeconds.style.color = 'red';
+				        };
+				    }, 1000);
+				},
+				run: function(){
+				    this.mainMenu();
+				    window.onkeyup = function(e){
+				        if(e.keyCode == 32) {
+				            window.onkeyup = null;
+				            this.setup();
+				            changeFillBox = setInterval(function(){
+				            	fillMeBox.make();
+				            	game.reDraw();
+				            }, 1000);
+				            document.body.webkitRequestFullScreen();
+				            document.body.requestPointerLock();
+				            fillMeBox.make();
+				            this.reDraw();
+				            this.startTime();
+				        };
+				    }.bind(this);
+				}
+			};
 
-	//DRAW MAINMENU
-	mainMenu: function(){
-	    font = "100px impact";
-	    canvas.drawCenteredText(font, "Fill In Box 3", can, 'black', 0, 2.8);
-	    canvas.drawCenteredText(font, "Press Space To Begin", can, "red", 0, 2);
-	},
+			/*--------------------------------------------------------MOVEMENT----------------------------------------------------------------*/
 
-	//REDRAW/UPDATE
-	reDraw: function(){
-	    canvas.clear();
-	    player1.draw();
-	    player2.draw();
-	    fillMeBox.draw();
-	},
+			function move(player, direction){
+				switch(direction){
+					case "RIGHT":
+						player.x += player.size;
+					break;
+					case "LEFT":
+						player.x -= player.size;
+					break;
+					case "DOWN":
+						player.y += player.size;
+					break;
+					case "UP":
+						player.y -= player.size;
+					break;
+					default:
+					break;
+				};
+				player.check();
+				game.reDraw();
+			};
 
-	//GAMEOVER
-	gameOver: function(){
-		//VARIABLES
-	    window.onkeydown = null;
-	    clearInterval(changeFillBox);
-	    isPlaying = false;
-	    canvas.clear();
-	    FONT = "100px Verdana";
-		if(player1.score > player2.score){
-			canvas.drawCenteredText(FONT, player1.name.toUpperCase() + " Wins!!!", can, player1.color, 0, 2);
-		} else if(player1.score < player2.score){
-			canvas.drawCenteredText(FONT, player2.name.toUpperCase() + " Wins!!!", can, player2.color, 0, 2);
-		} else {
-			canvas.drawCenteredText(FONT, "IT'S A TIE!!!", can, 'black', 0, 2);
-		};
-	    window.onkeyup = function(e){
-	        if(e.keyCode == 32){
-	            location.reload();
-	        };
-	    };
-	},
+			//KEY CODDES
+			var LEFT = 65 || 70;
+			var DOWN = 83;
+			var RIGHT = 68;
+			var UP = 87;
+			window.addEventListener('keydown', function (evt){
+				KEYSTATE[evt.keyCode] = true;
+				if(game.isPlaying){
+			//PLAYER 1 MOVEMENT
+					if(KEYSTATE[RIGHT] && player1.x+player1.size < can.width){
+						move(player1, "RIGHT");
+					} else if(KEYSTATE[LEFT] && player1.x > 0){
+						move(player1, "LEFT");
+					} else if(KEYSTATE[DOWN] && player1.y+player1.size < can.height){
+						move(player1, "DOWN");
+					} else if(KEYSTATE[UP] && player1.y > 0){
+						move(player1, "UP");
+					};
+			//PLAYER 2 MOVEMENT
+					if(evt.keyIdentifier == "Right" && player2.x+player2.size < can.width){
+						move(player2, "RIGHT");
+					} else if(evt.keyIdentifier == "Left" && player2.x > 0){
+						move(player2, "LEFT");
+					} else if(evt.keyIdentifier == "Down" && player2.y+player2.size < can.height){
+						move(player2, "DOWN");
+					} else if(evt.keyIdentifier == "Up" && player2.y > 0){
+						move(player2, "UP");
+					};
+					//EDWIN CHEAT
+					if(evt.keyCode == 17){
+						fillMeBox.x = game.me.x + 100;
+						fillMeBox.y = game.me.y;
+						game.reDraw();
+					} else if(evt.keyCode == 16){
+						game.me.scoreElement.innerText = game.me.score++;
+					};
+				};
+			})
+			window.addEventListener('keyup', function (e){
+				delete KEYSTATE[e.keyCode];
+			});
 
-	//GAME TIMER
-	timer: function(){
-	    timeLeft = 30;
-	    count = setInterval(function countdown(){
-	        timeLeft--;
-	        timeSeconds.innerHTML = timeLeft;
-	        if (timeLeft == 0) {
-	            clearInterval(count);
-	            game.gameOver();
-	        } else if(timeLeft <= 5){
-	            timeSeconds.style.color = 'red';
-	        }
-	    }, 1000)
-	},
-
-	run: function(){
-	    this.mainMenu();
-	    window.onkeyup = function(e){
-	        if(e.keyCode == 32) {
-	            window.onkeyup = null;                    //DISABLE KEYINPUT
-	            game.setup();                             //CALL SETUP
-	            changeFillBox = setInterval(function(){   //START CHANGING FILLMEBOX POSITION EVERY SECOND
-					fillMeBox.makeRandomFillBox();
-					game.reDraw();
-				},1000);
-	            document.documentElement.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT); //REQUEST FULLSCREEN
-	            document.body.webkitRequestPointerLock(); //REQUEST POINTERLOCK
-	            fillMeBox.makeRandomFillBox();            //MAKE FILLMEBOX
-	            game.reDraw();                            //CALL REDRAW FUNCTION
-	            game.timer();                             //START THE TIMER
-	        };
-	    };
-	}
-};
-
-/*--------------------------------------------------------MOVEMENT----------------------------------------------------------------*/
-
-function move(player, scoreElement, direction){
-	if(direction == "RIGHT"){
-		player.x += player.speed;
-		player.check(scoreElement);
-		game.reDraw();
-	} else if(direction == "LEFT"){
-		player.x -= player.speed;
-		player.check(scoreElement);
-		game.reDraw();
-	} else if(direction == "DOWN"){
-		player.y += player.speed;
-		player.check(scoreElement);
-		game.reDraw();
-	} else if(direction == "UP"){
-		player.y -= player.speed;
-		player.check(scoreElement);
-		game.reDraw();
-	};
-};
-
-//KEY CODDES
-LEFT = 65 || 70;
-DOWN = 83;
-RIGHT = 68;
-UP = 87;
-window.addEventListener('keydown', function (evt){
-	KEYSTATE[evt.keyCode] = true;
-	if(isPlaying){
-		//PLAYER 1 MOVEMENT
-		if(KEYSTATE[RIGHT] && player1.x+player1.width < can.width){
-			move(player1, player1.ScoreElement, "RIGHT");
-		} else if(KEYSTATE[LEFT] && player1.x > 0){
-			move(player1, player1.ScoreElement, "LEFT");
-		} else if(KEYSTATE[DOWN] && player1.y+player1.height < can.height){
-			move(player1, player1.ScoreElement, "DOWN");
-		} else if(KEYSTATE[UP] && player1.y > 0){
-			move(player1, player1.ScoreElement, "UP");
-		};
-		//PLAYER 2 MOVEMENT
-		if(evt.keyIdentifier == "Right" && player2.x+player2.width < can.width){
-			move(player2, player2.ScoreElement, "RIGHT");
-		} else if(evt.keyIdentifier == "Left" && player2.x > 0){
-			move(player2, player2.ScoreElement, "LEFT");
-		} else if(evt.keyIdentifier == "Down" && player2.y+player2.height < can.height){
-			move(player2, player2.ScoreElement, "DOWN");
-		} else if(evt.keyIdentifier == "Up" && player2.y > 0){
-			move(player2, player2.ScoreElement, "UP");
-		};
-		//EDWIN CHEAT
-		if(evt.keyCode  == 17){
-			fillMeBox.x = Edwin().x + 100;
-			fillMeBox.y = Edwin().y;
-			game.reDraw();
-		} else if(evt.keyCode == 16){
-			Edwin().score++;
-			Edwin().ScoreElement.innerHTML = Edwin().score;
-		};
-
-	};
-})
-window.addEventListener('keyup', function (e){
-	delete KEYSTATE[e.keyCode];
-})
-
-/*--------------------------------------------------------MOVEMENT----------------------------------------------------------------*/
-/*--------------------------------------------------------CHEAT-------------------------------------------------------------------*/
-function Edwin(){
-	if(player1.name.toUpperCase() == "EDWIN"){
-		return player1;
-	} else if(player2.name.toUpperCase() == "EDWIN"){
-		return player2;
-	} else {
-		return false;
-	}
-};
-/*--------------------------------------------------------CHEAT-------------------------------------------------------------------*/
-
-function init(){
-    //VARIABLES
-    isPlaying = false;
-	KEYSTATE = {};
-
-    //CANVAS
-    can = document.getElementById('can');
-    drawer = can.getContext('2d');
-
-    //SCORE
-    scoreKeeper = document.getElementById('scoreKeeper');
-
-    //TIME
-    timeKeeper = document.getElementById('timeKeeper');
-    timeSeconds = document.getElementById('timeSeconds');
-
-    //PLAYER NAME ELEMENTS
-    player1.NameElement = document.getElementById('player1Name');
-    player2.NameElement = document.getElementById('player2Name');
-
-    //PLAYER SCORE ELEMENTS
-    player1.ScoreElement = document.getElementById('player1Score');
-    player2.ScoreElement = document.getElementById('player2Score');
-
-    //REZIZE AND RUN GAME
-    canvas.resize();
-    game.run();
-}; init();
-
-</script>
-</body>
+			/*--------------------------------------------------------MOVEMENT----------------------------------------------------------------*/
+			window.addEventListener('load', function(){
+				KEYSTATE = {};
+			    drawer   = can.getContext('2d');
+			    canvas.resize();
+			    game.run();
+			});
+		</script>
+	</body>
 </html>
